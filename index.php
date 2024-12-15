@@ -1,101 +1,77 @@
-<?php
-	//session_set_cookie_params(30); // 1800 giây = 30 phút
-	if(!isset($_SESSION)) 
-    { 
-        session_start(); 
-    } 
-	
-	
-	include_once "cauhinh.php";
-	
-	include_once "thuvien.php";
+<?php 
+if(!isset($_SESSION["nguoidung"]))
+    header("location:../index.php");
+
+require("../../model/database.php");
+require("../../model/nguoidung.php");
+
+if(isset($_REQUEST["action"])){
+    $action = $_REQUEST["action"];
+}
+else{
+    $action="macdinh"; 
+}
+
+$nguoidung = new NGUOIDUNG();
+
+switch($action){
+    case "macdinh":   
+        $nguoidung = $nguoidung->laydanhsachnguoidung();   
+		// sắp xếp
+		if(isset($_GET["sort"])){
+			$sort = $_GET["sort"];
+			switch($sort){
+				case 'email':
+					usort($nguoidung, function($a, $b){ return strcmp($a["email"], $b["email"]); });
+					break;
+				case 'sodienthoai':
+					usort($nguoidung, function($a, $b){ return strcmp($b["sodienthoai"], $a["sodienthoai"]); });
+					break;
+				case 'hoten':
+					usort($nguoidung, function($a, $b){ return strcmp($b["hoten"], $a["hoten"]); });
+					break;
+				case 'loai':
+					usort($nguoidung, function($a, $b){ return $a["loai"] - $b["loai"]; });
+					break;
+				default:
+					ksort($nguoidung);
+					break;
+			}
+		}
+        include("main.php");
+        break;
+    case "khoa":   
+        $mand = $_GET["mand"];
+        $trangthai = $_GET["trangthai"];
+        if(!$nguoidung->doitrangthai($mand, $trangthai)){
+            $tb = "Đã đổi trạng thái!";
+        }
+        $nguoidung = $nguoidung->laydanhsachnguoidung();     
+        include("main.php");
+        break;
+    case "them":        
+        include("addform.php");        
+        break;
+
+    case "xlthem":
+        $email = $_POST["txtemail"];
+        $matkhau = $_POST["txtmatkhau"];
+        $sodt = $_POST["txtdienthoai"];
+        $hoten = $_POST["txthoten"];
+        $loaind = $_POST["optloaind"];
+        if($nguoidung->laythongtinnguoidung($email)){   // có thể kiểm tra thêm số đt không trùng
+            $tb = "Email này đã được cấp tài khoản!";
+        }
+        else{
+            if(!$nguoidung->themnguoidung($email,$matkhau,$sodt,$hoten,$loaind)){
+                $tb = "Không thêm được!";
+            }
+        }
+        $nguoidung = $nguoidung->laydanhsachnguoidung();
+        include("main.php");        
+        break;
+    
+    default:
+        break;
+}
 ?>
-<!DOCTYPE html>
-<html>
-	<head>
-		<title>Trang Tin Shop Giày</title>
-		<meta charset="utf-8" />
-		<link rel="stylesheet" type="text/css" href="css/style.css" />
-		<script src="scripts/ckeditor/ckeditor.js"></script>
-	</head>
-	<body>
-		<div id="TrangWeb">
-			<div id="PhanDau">	
-			
-				<?php
-					if(isset($_SESSION['MaND']) && isset($_SESSION['HoTen']))
-					{
-					echo "<br><br><br><br><br>Xin chào ".$_SESSION['HoTen']." &nbsp;&nbsp;|| &nbsp;&nbsp;";
-						echo '<a href="index.php?do=dangxuat">Đăng xuất</a>'."&nbsp;&nbsp;";
-					}
-				?>				
-			</div>
-			<div id="PhanGiua">
-				<div id="BenTrai">
-					<?php
-					//hiện menu quản lý
-					if(!isset($_SESSION['MaND']))
-					{
-						echo '<h3>Quản lý</h3>';
-							echo '<ul>';
-								echo '<li><a href="index.php?do=dangnhap">Đăng nhập</a></li>';
-								echo '<li><a href="index.php?do=dangky">Đăng ký</a></li>';
-							echo '</ul>';
-					}
-					else
-					{
-						echo '<h3>Quản lý</h3>';
-						echo '<ul>';						
-							echo '<li><a href="index.php?do=sanpham_them">Thêm sản phẩm</a></li>';
-								
-							if($_SESSION['QuyenHan'] == 1)
-							{
-								echo '<li><a href="index.php?do=nhasanxuat">Danh sách nhà sản xuất </a></li>';
-								echo '<li><a href="index.php?do=sanpham">Danh sách sản phẩm</a></li>';
-								echo '<li><a href="index.php?do=nguoidung">Danh sách người dùng</a></li>';
-							}
-						echo '</ul>';
-					}
-
-
-					//hiện menu hồ sơ cá nhân					
-					if(isset($_SESSION['MaND']))
-					{
-						echo '<h3>Hồ sơ cá nhân</h3>';
-						echo '<ul>';						
-							echo '<li><a href="index.php?do=hosocanhan">Hồ sơ cá nhân</a></li>';
-							echo '<li><a href="index.php?do=doimatkhau">Đổi mật khẩu</a></li>';
-						echo '</ul>';
-					}								
-					?>
-					
-					
-					<h3>Chức năng khác</h3>
-					<ul>
-						<?php
-							if(isset($_SESSION['MaND'])){					
-								echo '<li><a href="index.php?do=DanhSachDonHang">Danh Sách Đơn Hàng</a></li>';
-
-
-							}
-
-						?>
-
-					</ul>
-					
-					
-				</div>
-				<div id="BenPhai">
-					<?php
-						$do = isset($_GET['do']) ? $_GET['do'] : "home";
-						
-						include $do . ".php";
-					?>
-				</div>
-			</div>
-			<div id="PhanCuoi">
-				<div class="lienhe">Liên hệ: tva@agu.edu.vn </div>
-			</div>
-		</div>
-	</body>
-</html>
