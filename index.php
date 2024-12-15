@@ -1,76 +1,79 @@
 <?php 
-if(!isset($_SESSION["nguoidung"]))
-    header("location:../index.php");
-
 require("../../model/database.php");
 require("../../model/nguoidung.php");
 
+// Biến $isLogin cho biết người dùng đăng nhập chưa
+$isLogin = isset($_SESSION["nguoidung"]);
+
+
+// Xét xem có thao tác nào được chọn
 if(isset($_REQUEST["action"])){
     $action = $_REQUEST["action"];
 }
-else{
-    $action="macdinh"; 
+elseif($isLogin == FALSE){  // chưa đăng nhập
+    $action="dangnhap";
+}
+else{   // mặc định
+    $action="macdinh";
 }
 
-$nguoidung = new NGUOIDUNG();
+$nd = new NGUOIDUNG();
+
 
 switch($action){
-    case "macdinh":   
-        $nguoidung = $nguoidung->laydanhsachnguoidung();   
-		// sắp xếp
-		if(isset($_GET["sort"])){
-			$sort = $_GET["sort"];
-			switch($sort){
-				case 'email':
-					usort($nguoidung, function($a, $b){ return strcmp($a["email"], $b["email"]); });
-					break;
-				case 'sodienthoai':
-					usort($nguoidung, function($a, $b){ return strcmp($b["sodienthoai"], $a["sodienthoai"]); });
-					break;
-				case 'hoten':
-					usort($nguoidung, function($a, $b){ return strcmp($b["hoten"], $a["hoten"]); });
-					break;
-				case 'loai':
-					usort($nguoidung, function($a, $b){ return $a["loai"] - $b["loai"]; });
-					break;
-				default:
-					ksort($nguoidung);
-					break;
-			}
-		}
+    case "macdinh":               
         include("main.php");
         break;
-    case "khoa":   
-        $mand = $_GET["mand"];
-        $trangthai = $_GET["trangthai"];
-        if(!$nguoidung->doitrangthai($mand, $trangthai)){
-            $tb = "Đã đổi trạng thái!";
-        }
-        $nguoidung = $nguoidung->laydanhsachnguoidung();     
-        include("main.php");
+    case "dangnhap":
+        include("login.php");
         break;
-    case "them":        
-        include("addform.php");        
-        break;
-
-    case "xlthem":
-        $email = $_POST["txtemail"];
-        $matkhau = $_POST["txtmatkhau"];
-        $sodt = $_POST["txtdienthoai"];
-        $hoten = $_POST["txthoten"];
-        $loaind = $_POST["optloaind"];
-        if($nguoidung->laythongtinnguoidung($email)){   // có thể kiểm tra thêm số đt không trùng
-            $tb = "Email này đã được cấp tài khoản!";
+    case "xldangnhap":
+        $email = $_REQUEST["txtemail"];
+        $matkhau = $_REQUEST["txtmatkhau"];
+        if($nd->kiemtranguoidunghople($email,$matkhau)==TRUE){
+            $_SESSION["nguoidung"] = $nd->laythongtinnguoidung($email); // đặt biến session
+            include("main.php");
         }
         else{
-            if(!$nguoidung->themnguoidung($email,$matkhau,$sodt,$hoten,$loaind)){
-                $tb = "Không thêm được!";
-            }
+            include("login.php");
         }
-        $nguoidung = $nguoidung->laydanhsachnguoidung();
+        break;
+    case "dangxuat":
+        unset($_SESSION["nguoidung"]);  // hủy biến session
+        //include("login.php");         // hiển thị trang login
+        header("location:../../index.php");     // hoặc chuyển hướng ra bên ngoài (trang dành cho khách)
+        break;  
+    case "hoso":               
+        include("profile.php");
+        break; 
+    case "xlhoso":
+        $mand = $_POST["txtid"];
+        $email = $_POST["txtemail"];        
+        $sodt = $_POST["txtdienthoai"];
+        $hoten = $_POST["txthoten"];
+        $hinhanh = $_POST["txthinhanh"];
+
+        if($_FILES["fhinh"]["name"] != null){
+            $hinhanh = basename($_FILES["fhinh"]["name"]);
+            $duongdan = "../../images/users/" . $hinhanh;
+            move_uploaded_file($_FILES["fhinh"]["tmp_name"], $duongdan);
+        }
+        
+        $nd->capnhatnguoidung($mand,$email,$sodt,$hoten,$hinhanh);
+
+        $_SESSION["nguoidung"] = $nd->laythongtinnguoidung($email);
         include("main.php");        
         break;
-    
+
+       
+    case "matkhau":               
+        include("changepass.php");
+        break; 
+    case "doimatkhau":
+         if (isset($_POST["txtemail"]) && isset($_POST["txtmatkhaumoi"]) )
+            $nd->doimatkhau($_POST["txtemail"],$_POST["txtmatkhaumoi"]);
+        include("main.php");
+        break; 
     default:
         break;
 }
