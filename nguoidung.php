@@ -1,159 +1,52 @@
 <?php
-class NGUOIDUNG{
-	// khai báo các thuộc tính (SV tự viết)
-	
-	public function kiemtranguoidunghople($email,$matkhau){
-		$db = DATABASE::connect();
-		try{
-			$sql = "SELECT * FROM nguoidung WHERE email=:email AND matkhau=:matkhau AND trangthai=1";
-			$cmd = $db->prepare($sql);
-			$cmd->bindValue(":email", $email);
-			$cmd->bindValue(":matkhau", md5($matkhau));
-			$cmd->execute();
-			$valid = ($cmd->rowCount () == 1);
-			$cmd->closeCursor ();
-			return $valid;			
-		}
-		catch(PDOException $e){
-			$error_message=$e->getMessage();
-			echo "<p>Lỗi truy vấn: $error_message</p>";
-			exit();
-		}
-	}
-	
-	// lấy thông tin người dùng có $email
-	public function laythongtinnguoidung($email){
-		$db = DATABASE::connect();
-		try{
-			$sql = "SELECT * FROM nguoidung WHERE email=:email";
-			$cmd = $db->prepare($sql);
-			$cmd->bindValue(":email", $email);
-			$cmd->execute();
-			$ketqua = $cmd->fetch();
-			$cmd->closeCursor();
-			return $ketqua;
-		}
-		catch(PDOException $e){
-			$error_message=$e->getMessage();
-			echo "<p>Lỗi truy vấn: $error_message</p>";
-			exit();
-		}
-	}
-	
-	// lấy tất cả ng dùng
-	public function laydanhsachnguoidung(){
-		$db = DATABASE::connect();
-		try{
-			$sql = "SELECT * FROM nguoidung";
-			$cmd = $db->prepare($sql);			
-			$cmd->execute();
-			$ketqua = $cmd->fetchAll();			
-			return $ketqua;
-		}
-		catch(PDOException $e){
-			$error_message=$e->getMessage();
-			echo "<p>Lỗi truy vấn: $error_message</p>";
-			exit();
-		}
+	$sql = "SELECT * FROM `tbl_nguoidung` WHERE 1";
+	$danhsach = $connect->query($sql);
+	//Nếu kết quả kết nối không được thì xuất báo lỗi và thoát
+	if (!$danhsach) {
+		die("Không thể thực hiện câu lệnh SQL: " . $connect->connect_error);
+		exit();
 	}
 
-	// Thêm ng dùng mới, trả về khóa của dòng mới thêm
-	// (SV nên truyền tham số là 1 đối tượng kiểu người dùng, không nên truyền nhiều tham số rời rạc như thế này)
-	public function themnguoidung($email,$matkhau,$sodt,$hoten,$loai){
-		$db = DATABASE::connect();
-		try{
-			$sql = "INSERT INTO nguoidung(email,matkhau,sodienthoai,hoten,loai) VALUES(:email,:matkhau,:sodt,:hoten,:loai)";
-			$cmd = $db->prepare($sql);
-			$cmd->bindValue(':email',$email);
-			$cmd->bindValue(':matkhau',md5($matkhau));
-			$cmd->bindValue(':sodt',$sodt);
-			$cmd->bindValue(':hoten',$hoten);
-			$cmd->bindValue(':loai',$loai);
-			$cmd->execute();
-			$id = $db->lastInsertId();
-			return $id;
-		}
-		catch(PDOException $e){
-			$error_message=$e->getMessage();
-			echo "<p>Lỗi truy vấn: $error_message</p>";
-			exit();
-		}
-	}
-
-	// Cập nhật thông tin ng dùng: họ tên, số đt, email, ảnh đại diện 
-	// (SV nên truyền tham số là 1 đối tượng kiểu người dùng, không nên truyền nhiều tham số rời rạc như thế này)
-	public function capnhatnguoidung($id,$email,$sodt,$hoten,$hinhanh){
-		$db = DATABASE::connect();
-		try{
-			$sql = "UPDATE nguoidung set hoten=:hoten, email=:email, sodienthoai=:sodt, hinhanh=:hinhanh where id=:id";
-			$cmd = $db->prepare($sql);
-			$cmd->bindValue(':id',$id);
-			$cmd->bindValue(':email',$email);
-			$cmd->bindValue(':sodt',$sodt);
-			$cmd->bindValue(':hoten',$hoten);
-			$cmd->bindValue(':hinhanh',$hinhanh);
-			$ketqua = $cmd->execute();            
-            return $ketqua;
-		}
-		catch(PDOException $e){
-			$error_message=$e->getMessage();
-			echo "<p>Lỗi truy vấn: $error_message</p>";
-			exit();
-		}
-	}
-
-	// Đổi mật khẩu
-	public function doimatkhau($email,$matkhau){
-		$db = DATABASE::connect();
-		try{
-			$sql = "UPDATE nguoidung set matkhau=:matkhau where email=:email";
-			$cmd = $db->prepare($sql);
-			$cmd->bindValue(':email',$email);
-			$cmd->bindValue(':matkhau',md5($matkhau));
-			$ketqua = $cmd->execute();            
-            return $ketqua;
-		}
-		catch(PDOException $e){
-			$error_message=$e->getMessage();
-			echo "<p>Lỗi truy vấn: $error_message</p>";
-			exit();
-		}
-	}
-
-	// Đổi quyền (loại người dùng: 1 quản trị, 2 nhân viên. Không cần nâng cấp quyền đối với loại người dùng 3-khách hàng)
-	public function doiloainguoidung($email,$loai){
-		$db = DATABASE::connect();
-		try{
-			$sql = "UPDATE nguoidung set loai=:loai where email=:email";
-			$cmd = $db->prepare($sql);
-			$cmd->bindValue(':email',$email);
-			$cmd->bindValue(':loai',$loai);
-			$ketqua = $cmd->execute();            
-            return $ketqua;
-		}
-		catch(PDOException $e){
-			$error_message=$e->getMessage();
-			echo "<p>Lỗi truy vấn: $error_message</p>";
-			exit();
-		}
-	}
-
-	// Đổi trạng thái (0 khóa, 1 kích hoạt)
-	public function doitrangthai($id,$trangthai){
-		$db = DATABASE::connect();
-		try{
-			$sql = "UPDATE nguoidung set trangthai=:trangthai where id=:id";
-			$cmd = $db->prepare($sql);
-			$cmd->bindValue(':id',$id);
-			$cmd->bindValue(':trangthai',$trangthai);
-			$ketqua = $cmd->execute();            
-            return $ketqua;
-		}
-		catch(PDOException $e){
-			$error_message=$e->getMessage();
-			echo "<p>Lỗi truy vấn: $error_message</p>";
-			exit();
-		}
-	}
-}
 ?>
+<h3>Danh sách người dùng</h3>
+<table class="DanhSach">
+	<tr>
+		<th>Mã ND</th>
+		<th>Họ và tên</th>
+		<th>Tên đăng nhập</th>
+		<th>Quyền</th>
+		<th colspan="3">Hành động</th>
+	</tr>
+	<?php
+		$stt = 1;
+		//Dùng vòng lặp while truy xuất các phần tử trong table
+		while ($dong = $danhsach->fetch_array(MYSQLI_ASSOC)) 
+		{			
+			echo "<tr  bgcolor='#ffffff' onmouseover='this.style.background=\"#dee3e7\"' onmouseout='this.style.background=\"#ffffff\"'>";
+				echo "<td>" . $dong["MaNguoiDung"] . "</td>";
+				echo "<td>" . $dong["TenNguoiDung"] . "</td>";
+				echo "<td>" . $dong["TenDangNhap"] . "</td>";
+				
+				echo "<td>";
+					if($dong["QuyenHan"] == 1)
+						echo "Quản trị (<a href='index.php?do=nguoidung_kichhoat&id=" . $dong["MaNguoiDung"] . "&quyen=2'>Hạ quyền</a>)";
+					else
+						echo "Thành viên (<a href='index.php?do=nguoidung_kichhoat&id=" . $dong["MaNguoiDung"] . "&quyen=1'>Nâng quyền</a>)";
+				echo "</td>";
+				
+				echo "<td align='center'>";
+					if($dong["Khoa"] == 0)
+						echo "<a href='index.php?do=nguoidung_kichhoat&id=" . $dong["MaNguoiDung"] . "&khoa=1'><img src='images/active.png' /></a>";
+					else
+						echo "<a href='index.php?do=nguoidung_kichhoat&id=" . $dong["MaNguoiDung"] . "&khoa=0'><img src='images/ban.png' /></a>";
+				echo "</td>";
+				
+				echo "<td align='center'><a href='index.php?do=nguoidung_sua&id=" . $dong["MaNguoiDung"] . "'><img src='images/edit.png' /></a></td>";
+				echo "<td align='center'><a href='index.php?do=nguoidung_xoa&id=" . $dong["MaNguoiDung"] . "' onclick='return confirm(\"Bạn có muốn xóa người dùng " . $dong['TenNguoiDung'] . " không?\")'><img src='images/delete.png' /></a></td>";
+			echo "</tr>";
+		}
+	?>
+</table>
+	
+<a href="index.php?do=dangky">Thêm mới người dùng</a>
+</form>

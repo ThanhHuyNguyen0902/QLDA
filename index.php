@@ -1,110 +1,101 @@
-<?php 
-if(!isset($_SESSION["nguoidung"]))
-    header("location:../index.php");
-
-require("../../model/database.php");
-require("../../model/danhmuc.php");
-require("../../model/mathang.php");
-
-// Xét xem có thao tác nào được chọn
-if(isset($_REQUEST["action"])){
-    $action = $_REQUEST["action"];
-}
-else{
-    $action="xem";
-}
-
-$dm = new DANHMUC();
-$mh = new MATHANG();
-
-switch($action){
-    case "xem":
-        $mathang = $mh->laymathang();
-		include("main.php");
-        break;
-	case "them":
-		$danhmuc = $dm->laydanhmuc();
-		include("addform.php");
-        break;
-	case "xulythem":	
-		// xử lý file upload
-		$hinhanh = "images/products/" . basename($_FILES["filehinhanh"]["name"]); // đường dẫn ảnh lưu trong db
-		$duongdan = "../../" . $hinhanh; // nơi lưu file upload (đường dẫn tính theo vị trí hiện hành)
-		move_uploaded_file($_FILES["filehinhanh"]["tmp_name"], $duongdan);
-		// xử lý thêm		
-        $mathanghh = new MATHANG();
-		$mathanghh->settenmathang($_POST["txttenmathang"]);
-		$mathanghh->setmota($_POST["txtmota"]);
-		$mathanghh->setgiagoc($_POST["txtgianhap"]);
-		$mathanghh->setgiaban($_POST["txtgiaban"]);
-		$mathanghh->setsoluongton($_POST["txtsoluong"]);
-		$mathanghh->setdanhmuc_id($_POST["optdanhmuc"]);
-        $mathanghh->sethinhanh($hinhanh);
-		$mh->themmathang($mathanghh);
-		$mathang = $mh->laymathang();
-		include("main.php");
-        break;
-	case "xoa":
-		if(isset($_GET["id"])){
-            $mathanghh = new MATHANG();        
-            $mathanghh->setid($_GET["id"]);
-			$mh->xoamathang($mathanghh);
-        }
-		$mathang = $mh->laymathang();
-		include("main.php");
-		break;	
-    case "chitiet":
-        if(isset($_GET["id"])){ 
-            $m = $mh->laymathangtheoid($_GET["id"]);            
-            include("detail.php");
-        }
-        else{
-            $mathang = $mh->laymathang();        
-            include("main.php");            
-        }
-        break;
-    case "sua":
-        if(isset($_GET["id"])){ 
-            $m = $mh->laymathangtheoid($_GET["id"]);
-            $danhmuc = $dm->laydanhmuc(); 
-            include("updateform.php");
-        }
-        else{
-            $mathang = $mh->laymathang();        
-            include("main.php");            
-        }
-        break;
-    case "xulysua":
-        $mathanghh = new MATHANG();
-        $mathanghh->setid($_POST["txtid"]);
-        $mathanghh->setdanhmuc_id($_POST["optdanhmuc"]);
-        $mathanghh->settenmathang($_POST["txttenhang"]);
-        $mathanghh->setmota($_POST["txtmota"]);
-        $mathanghh->setgiagoc($_POST["txtgiagoc"]);
-        $mathanghh->setgiaban($_POST["txtgiaban"]);
-        $mathanghh->setsoluongton($_POST["txtsoluongton"]);
-        $mathanghh->setluotxem($_POST["txtluotxem"]);
-        $mathanghh->setluotmua($_POST["txtluotmua"]);
-        $mathanghh->sethinhanh($_POST["txthinhcu"]);
-
-        // upload file mới (nếu có)
-        if($_FILES["filehinhanh"]["name"]!=""){
-            // xử lý file upload -- Cần bổ dung kiểm tra: dung lượng, kiểu file, ...       
-            $hinhanh = "images/" . basename($_FILES["filehinhanh"]["name"]);// đường dẫn lưu csdl
-            $mathanghh->sethinhanh($hinhanh);
-            $duongdan = "../../" . $hinhanh; // đường dẫn lưu upload file        
-            move_uploaded_file($_FILES["filehinhanh"]["tmp_name"], $duongdan);
-        }
-        
-        // sửa mặt hàng
-        $mh->suamathang($mathanghh);         
-    
-        // hiển thị ds mặt hàng
-        $mathang = $mh->laymathang();    
-        include("main.php");
-        break;
-
-    default:
-        break;
-}
+<?php
+	//session_set_cookie_params(30); // 1800 giây = 30 phút
+	if(!isset($_SESSION)) 
+    { 
+        session_start(); 
+    } 
+	
+	
+	include_once "cauhinh.php";
+	
+	include_once "thuvien.php";
 ?>
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Trang Tin Shop Giày</title>
+		<meta charset="utf-8" />
+		<link rel="stylesheet" type="text/css" href="css/style.css" />
+		<script src="scripts/ckeditor/ckeditor.js"></script>
+	</head>
+	<body>
+		<div id="TrangWeb">
+			<div id="PhanDau">	
+			
+				<?php
+					if(isset($_SESSION['MaND']) && isset($_SESSION['HoTen']))
+					{
+					echo "<br><br><br><br><br>Xin chào ".$_SESSION['HoTen']." &nbsp;&nbsp;|| &nbsp;&nbsp;";
+						echo '<a href="index.php?do=dangxuat">Đăng xuất</a>'."&nbsp;&nbsp;";
+					}
+				?>				
+			</div>
+			<div id="PhanGiua">
+				<div id="BenTrai">
+					<?php
+					//hiện menu quản lý
+					if(!isset($_SESSION['MaND']))
+					{
+						echo '<h3>Quản lý</h3>';
+							echo '<ul>';
+								echo '<li><a href="index.php?do=dangnhap">Đăng nhập</a></li>';
+								echo '<li><a href="index.php?do=dangky">Đăng ký</a></li>';
+							echo '</ul>';
+					}
+					else
+					{
+						echo '<h3>Quản lý</h3>';
+						echo '<ul>';						
+							echo '<li><a href="index.php?do=sanpham_them">Thêm sản phẩm</a></li>';
+								
+							if($_SESSION['QuyenHan'] == 1)
+							{
+								echo '<li><a href="index.php?do=nhasanxuat">Danh sách nhà sản xuất </a></li>';
+								echo '<li><a href="index.php?do=sanpham">Danh sách sản phẩm</a></li>';
+								echo '<li><a href="index.php?do=nguoidung">Danh sách người dùng</a></li>';
+							}
+						echo '</ul>';
+					}
+
+
+					//hiện menu hồ sơ cá nhân					
+					if(isset($_SESSION['MaND']))
+					{
+						echo '<h3>Hồ sơ cá nhân</h3>';
+						echo '<ul>';						
+							echo '<li><a href="index.php?do=hosocanhan">Hồ sơ cá nhân</a></li>';
+							echo '<li><a href="index.php?do=doimatkhau">Đổi mật khẩu</a></li>';
+						echo '</ul>';
+					}								
+					?>
+					
+					
+					<h3>Chức năng khác</h3>
+					<ul>
+						<?php
+							if(isset($_SESSION['MaND'])){					
+								echo '<li><a href="index.php?do=DanhSachDonHang">Danh Sách Đơn Hàng</a></li>';
+
+
+							}
+
+						?>
+
+					</ul>
+					
+					
+				</div>
+				<div id="BenPhai">
+					<?php
+						$do = isset($_GET['do']) ? $_GET['do'] : "home";
+						
+						include $do . ".php";
+					?>
+				</div>
+			</div>
+			<div id="PhanCuoi">
+				<div class="lienhe">Liên hệ: tva@agu.edu.vn </div>
+			</div>
+		</div>
+	</body>
+</html>
