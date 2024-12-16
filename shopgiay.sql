@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: 127.0.0.1
--- Thời gian đã tạo: Th12 13, 2024 lúc 06:48 AM
+-- Thời gian đã tạo: Th12 13, 2024 lúc 06:21 AM
 -- Phiên bản máy phục vụ: 10.4.32-MariaDB
 -- Phiên bản PHP: 8.2.12
 
@@ -27,32 +27,6 @@ SET time_zone = "+00:00";
 -- Cấu trúc bảng cho bảng `tbl_dondathang`
 --
 
-CREATE TABLE `tbl_dondathang` (
-  `IdDonHang` int(10) NOT NULL,
-  `IdSanPham` int(10) NOT NULL,
-  `TenSanPham` varchar(250) NOT NULL,
-  `TenKhachHang` varchar(50) NOT NULL,
-  `SoDienThoai` varchar(20) NOT NULL,
-  `DiaChi` varchar(250) NOT NULL,
-  `SoLuong` int(10) NOT NULL,
-  `DonGia` int(20) NOT NULL,
-  `TrangThai` int(1) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
---
--- Đang đổ dữ liệu cho bảng `tbl_dondathang`
---
-
-INSERT INTO `tbl_dondathang` (`IdDonHang`, `IdSanPham`, `TenSanPham`, `TenKhachHang`, `SoDienThoai`, `DiaChi`, `SoLuong`, `DonGia`, `TrangThai`) VALUES
-(14, 46, 'SUPERSTAR ADIDAS ORIGINALS X HELLO KITTY AND FRIENDS (Trẻ em)', 'Vu truong', '01254', 'seo trom', 1, 1862000, 1),
-(15, 50, 'Giày Thời Trang Unisex Converse Chuck 70 Vintage Canvas - Đen', 'Vu truong', '01254', 'seo trom', 1, 980000, 1),
-(16, 52, 'Giày Thời Trang Unisex Converse Chuck Taylor All Star - Trắng', 'Vu truong', '01254', 'seo trom', 1, 1015000, 1),
-(17, 59, 'Giày Sneaker Unisex Fila Targa Classic X Dragon - Trắng', 'Nguyễn Hải Hà', '0979613905', '192/9 , Trần Hưng Đạo , Mỹ Bình .', 2, 2200000, 0),
-(18, 53, 'Giày Thời Trang Nam Converse Chuck Taylor All Star Cx Explore - Xanh Navy', 'Nguyễn Hải Hà', '0979613905', '192/9 , Trần Hưng Đạo , Mỹ Bình .', 3, 1820000, 0),
-(19, 60, 'Giày Leo Núi Nam Columbia Plateau™ Waterproof - Đen', 'Nguyễn Hải Hà', '0979613905', '192/9 , Trần Hưng Đạo , Mỹ Bình .', 1, 1499500, 0),
-(20, 59, 'Giày Sneaker Unisex Fila Targa Classic X Dragon - Trắng', 'Lê Trường Vũ ', '08751264888', '6 Hà Hoàng Hổ , Long Xuyên , An Giang', 2, 2200000, 0),
-(21, 58, 'Giày Thời Trang Trẻ Em Converse Chuck Taylor All Star 1V - Hồng', 'Lê Trường Vũ ', '08751264888', '6 Hà Hoàng Hổ , Long Xuyên , An Giang', 1, 980000, 0),
-(22, 60, 'Giày Leo Núi Nam Columbia Plateau™ Waterproof - Đen', 'Lê Trường Vũ ', '08751264888', '6 Hà Hoàng Hổ , Long Xuyên , An Giang', 1, 1499500, 0);
 
 -- --------------------------------------------------------
 
