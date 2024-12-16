@@ -1,100 +1,42 @@
-<?php
-	//session_set_cookie_params(30); // 1800 giây = 30 phút
-	if(!isset($_SESSION)) 
-    { 
-        session_start(); 
-    } 
-	
-	
-	include_once "cauhinh.php";
-	
-	include_once "thuvien.php";
-?>
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>Trang Tin Shop Giày</title>
-		<meta charset="utf-8" />
-		<link rel="stylesheet" type="text/css" href="css/style.css" />
-		<script src="scripts/ckeditor/ckeditor.js"></script>
+	  <meta charset="utf-8">
+	  <title>Quản lý sinh viên</title>
+	  <meta name="viewport" content="width=device-width, initial-scale=1">
+	  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 	</head>
 	<body>
-		<div id="TrangWeb">
-			<div id="PhanDau">	
-			
-				<?php
-					if(isset($_SESSION['MaND']) && isset($_SESSION['HoTen']))
-					{
-					echo "<br><br><br><br><br>Xin chào ".$_SESSION['HoTen']." &nbsp;&nbsp;|| &nbsp;&nbsp;";
-						echo '<a href="index.php?do=dangxuat">Đăng xuất</a>'."&nbsp;&nbsp;";
-					}
-				?>				
-			</div>
-			<div id="PhanGiua">
-				<div id="BenTrai">
-					<?php
-					//hiện menu quản lý
-					if(!isset($_SESSION['MaND']))
-					{
-						echo '<h3>Quản lý</h3>';
-							echo '<ul>';
-								echo '<li><a href="index.php?do=dangnhap">Đăng nhập</a></li>';
-								echo '<li><a href="index.php?do=dangky">Đăng ký</a></li>';
-							echo '</ul>';
-					}
-					else
-					{
-						echo '<h3>Quản lý</h3>';
-						echo '<ul>';						
-							echo '<li><a href="index.php?do=sanpham_them">Thêm sản phẩm</a></li>';
-								
-							if($_SESSION['QuyenHan'] == 1)
-							{
-								echo '<li><a href="index.php?do=nhasanxuat">Danh sách nhà sản xuất </a></li>';
-								echo '<li><a href="index.php?do=sanpham">Danh sách sản phẩm</a></li>';
-								echo '<li><a href="index.php?do=nguoidung">Danh sách người dùng</a></li>';
-							}
-						echo '</ul>';
-					}
+		<!-- kết nối csdl-->
 
-
-					//hiện menu hồ sơ cá nhân					
-					if(isset($_SESSION['MaND']))
-					{
-						echo '<h3>Hồ sơ cá nhân</h3>';
-						echo '<ul>';						
-							echo '<li><a href="index.php?do=hosocanhan">Hồ sơ cá nhân</a></li>';
-							echo '<li><a href="index.php?do=doimatkhau">Đổi mật khẩu</a></li>';
-						echo '</ul>';
-					}								
-					?>
-					
-					
-					<h3>Chức năng khác</h3>
-					<ul>
+		<div class="container">
+			 <div class="row">
+				<!-- Hiện danh sách sinh viên-->
+				<div class="col-sm-8">
+					<a href="index.php"><h3>DANH SÁCH LỚP</h3></a>
+					<table class="table table-hover">
+						<tr><th>Lớp</th><th>Mô tả</th></tr>
 						<?php
-							if(isset($_SESSION['MaND'])){					
-								echo '<li><a href="index.php?do=DanhSachDonHang">Danh Sách Đơn Hàng</a></li>';
-
-
+						$conn = mysqli_connect("localhost", "root", "vertrigo", "qlsv");
+						$sql = "SELECT * FROM lop";
+						$lop = mysqli_query($conn, $sql);
+						if(mysqli_num_rows($lop) > 0) {
+							while($l = mysqli_fetch_assoc($lop)) {
+								echo "<tr>";
+								echo "<td>". $l["lop"] . "</td>";
+								echo "<td>". $l["mota"] . "</td>";
+								echo "<td><a href=\"updateform.php?id=" . $l["id"] . "\">Sửa</a> | <a href=\"delete.php?id=" . $l["id"] . "\">Xóa</a></td>";
+								echo "</tr>";
 							}
-
+						}
 						?>
-
-					</ul>
-					
-					
+					</table>
+					<div style="text-align:right;">
+						<a class="btn btn-primary" href="addform.php"><span class="glyphicon glyphicon-plus"></span> Thêm lớp</a>
+					</div>
 				</div>
-				<div id="BenPhai">
-					<?php
-						$do = isset($_GET['do']) ? $_GET['do'] : "home";
-						
-						include $do . ".php";
-					?>
-				</div>
-			</div>
-			<div id="PhanCuoi">
-				<div class="lienhe">Liên hệ: tva@agu.edu.vn </div>
 			</div>
 		</div>
 	</body>

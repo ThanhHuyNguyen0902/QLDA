@@ -1,34 +1,33 @@
-<?php include("../inc/top.php"); ?>
-<div>
-  <h3>Thêm tài khoản người dùng</h3>
-  
-  <!-- Form thêm mới -->
-  
-  <div>
-    <form method="post">
-      <div class="my-3">        
-      <input class="form-control" type="email" name="txtemail" placeholder="Email" required>
-      </div>
-      <div class="my-3"><input class="form-control"  type="text" name="txtmatkhau" placeholder="Mật khẩu" required></div>
-      <div class="my-3">        
-      <input class="form-control" type="number" name="txtdienthoai" placeholder="Số điện thoại" required>
-      </div>
-      <div class="my-3">
-      <input class="form-control"  type="text" name="txthoten" placeholder="Họ tên" required></div>
-      <div class="my-3">
-      <label>Chọn quyền</label>
-      <select class="form-control" name="optloaind">                
-          <option value="1">Quản trị</option>
-          <option value="2" selected>Thành viên</option>
-          <option value="3">Khách hàng</option>
-      </select></div>
-      <div class="my-3">
-      <input type="hidden" name="action" value="xlthem" >
-      <input class="btn btn-primary"  type="submit" value="Thêm">
-      <input class="btn btn-warning"  type="reset" value="Hủy"></div>
-    </form>          
-  </div>
-        
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
+</head>
+<body>
+<div class="container">
+	<div class="row">
+		<div class="col-sm-4"></div>
+		<div class="col-sm-4">
+			<h1>Thêm lớp</h1>
+			<form name="f" action="add.php" method="POST">
+			<div class="form-group">
+				<label for="">Lớp</label>		
+				<input class="form-control" type="text" name="txtlop" placeholder="Nhập lớp">
+			</div>
+			<div class="form-group">
+				<label for="">Mô tả</label>		
+				<input class="form-control" type="text" name="txtmota" placeholder="Nhập mô tả">
+			</div>
+			<input class="btn btn-info" type="submit" value="Lưu">
+			</form>
+		</div>
+		<div class="col-sm-4"></div>
+	</div>
 </div>
-<?php include("../inc/bottom.php"); ?>
+</body>
+</html>
