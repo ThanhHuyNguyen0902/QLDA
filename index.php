@@ -1,10 +1,8 @@
-<?php
-	//session_set_cookie_params(30); // 1800 giây = 30 phút
+﻿<?php
 	if(!isset($_SESSION)) 
     { 
         session_start(); 
     } 
-	
 	
 	include_once "cauhinh.php";
 	
@@ -16,85 +14,132 @@
 		<title>Trang Tin Shop Giày</title>
 		<meta charset="utf-8" />
 		<link rel="stylesheet" type="text/css" href="css/style.css" />
-		<script src="scripts/ckeditor/ckeditor.js"></script>
+	
+		<script type="text/javascript" src="scripts/jquery-1.4.1.js"></script>
+		<script type="text/javascript" src="scripts/basic.js"></script>
+		
+		<script type="text/javascript" src="scripts/ckeditor/ckeditor.js"></script>
+		<script type="text/javascript" src="scripts/ckfinder/ckfinder.js"></script>
+		
+		
+		
 	</head>
-	<body>
+	<body onload="htGio()">
 		<div id="TrangWeb">
-			<div id="PhanDau">	
+			<div id="PhanDau">
+				
+			</div>
+			<div id="PhanMenu1">
+				<a class = "menu" href="index.php?do=home">Trang chủ</a>  
+
+				<a class = "menu" href="index.php?do=GioHang"> Giỏ Hàng</a>  
+		
+			</div>
+			<div id="PhanMenu2">
+				
+		
+			</div>
 			
-				<?php
-					if(isset($_SESSION['MaND']) && isset($_SESSION['HoTen']))
-					{
-					echo "<br><br><br><br><br>Xin chào ".$_SESSION['HoTen']." &nbsp;&nbsp;|| &nbsp;&nbsp;";
-						echo '<a href="index.php?do=dangxuat">Đăng xuất</a>'."&nbsp;&nbsp;";
-					}
-				?>				
+			<div id="PhanMenu3">
+				<form action="index.php?do=search_xuly" method="post">
+					Tìm kiếm: <input type="text" name="search" />
+					<input type="submit" name="ok" value="search" />
+				</form>
 			</div>
 			<div id="PhanGiua">
 				<div id="BenTrai">
+				<h3>Nhà sản xuất</h3>
+					
 					<?php
-					//hiện menu quản lý
-					if(!isset($_SESSION['MaND']))
-					{
-						echo '<h3>Quản lý</h3>';
-							echo '<ul>';
-								echo '<li><a href="index.php?do=dangnhap">Đăng nhập</a></li>';
-								echo '<li><a href="index.php?do=dangky">Đăng ký</a></li>';
-							echo '</ul>';
-					}
-					else
-					{
-						echo '<h3>Quản lý</h3>';
-						echo '<ul>';						
-							echo '<li><a href="index.php?do=sanpham_them">Thêm sản phẩm</a></li>';
-								
-							if($_SESSION['QuyenHan'] == 1)
-							{
-								echo '<li><a href="index.php?do=nhasanxuat">Danh sách nhà sản xuất </a></li>';
-								echo '<li><a href="index.php?do=sanpham">Danh sách sản phẩm</a></li>';
-								echo '<li><a href="index.php?do=nguoidung">Danh sách người dùng</a></li>';
-							}
-						echo '</ul>';
-					}
 
-
-					//hiện menu hồ sơ cá nhân					
-					if(isset($_SESSION['MaND']))
-					{
-						echo '<h3>Hồ sơ cá nhân</h3>';
-						echo '<ul>';						
-							echo '<li><a href="index.php?do=hosocanhan">Hồ sơ cá nhân</a></li>';
-							echo '<li><a href="index.php?do=doimatkhau">Đổi mật khẩu</a></li>';
-						echo '</ul>';
-					}								
+						$sql = "select * from `tbl_nhasanxuat` WHERE 1";
+						$danhsach = $connect->query($sql);
+						//Nếu kết quả kết nối không được thì xuất báo lỗi và thoát
+						if (!$danhsach) {
+							die("Không thể thực hiện câu lệnh SQL: " . $connect->connect_error);
+							exit();
+						}
+						
 					?>
+					<div id="menudung">
+					  <ul>						
+						
+							<?php
+							
+								while ($row = $danhsach->fetch_array(MYSQLI_ASSOC)) 
+								{
+    								echo "<li><a href='index.php?do=sanpham_nhasanxuat&id_nsx=" . $row['IdNhaSanXuat'] . "'>" . $row['TenNhaSanXuat'] . "</a></li>";   
+  								}
+							?>  
+						  
+					   </ul>
+						
+					</div>	
 					
 					
-					<h3>Chức năng khác</h3>
-					<ul>
-						<?php
-							if(isset($_SESSION['MaND'])){					
-								echo '<li><a href="index.php?do=DanhSachDonHang">Danh Sách Đơn Hàng</a></li>';
-
-
-							}
-
-						?>
-
-					</ul>
+				
+				
+					<h3>Loại Giày</h3>
+					
+					<div id="menudung">
+					  <ul>						
+							<li><a href="index.php?do=Sanpham_PhanLoai&phan_loai=Sneaker">Sneaker</a></li>
+							<li><a href="index.php?do=Sanpham_PhanLoai&phan_loai=Thời trang">Thời trang</a></li>
+							<li><a href="index.php?do=Sanpham_PhanLoai&phan_loai=Bóng đá">Bóng đá</a></li>
+							<li><a href="index.php?do=Sanpham_PhanLoai&phan_loai=Leo núi">Leo núi</a></li>
+							<li><a href="index.php?do=Sanpham_PhanLoai&phan_loai=Cổ cao">Cổ cao</a></li>
+							<li><a href="index.php?do=Sanpham_PhanLoai&phan_loai=Cổ ngắn">Cổ ngắn</a></li>
+							<li><a href="index.php?do=Sanpham_PhanLoai&phan_loai=Trẻ em">Trẻ em</a></li>
+					   </ul>
+						
+					</div>	
+					
+								
 					
 					
-				</div>
-				<div id="BenPhai">
+					
+				</div>	
+				
+				<div id="Giua">
+					<table border="0" cellspacing="0" width="750" align="center" valign="top">
+						<tr>
+							<td>
+								<?php include 'jquery.php'; ?>
+							</td>
+						</tr>
+					</table>
+				
+				
 					<?php
+						
 						$do = isset($_GET['do']) ? $_GET['do'] : "home";
 						
 						include $do . ".php";
 					?>
+					
+					
 				</div>
-			</div>
+				
 			<div id="PhanCuoi">
-				<div class="lienhe">Liên hệ: tva@agu.edu.vn </div>
+				<table>
+					<tr>
+						<td>
+							<p>Giới thiệu công ty &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Chính sách bảo mật &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Hệ thống cửa hàng 
+							&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Tin tuyển dụng </p>
+				
+							<p>Quy chế hoạt động &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Hướng dẫn mua online &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Hệ thống bảo hành 
+							&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Hướng dẫn mua trả góp </p>
+				
+							<p>Chính sách đổi trả &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Phản hồi khách hàng Chính sách trả góp &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+							Câu hỏi thường gặp mua hàng</p>
+			
+						</td>
+						<td >
+							&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="images/thanhtoan.jpg" />
+						</td>
+					</tr>
+				</table>
+				
 			</div>
 		</div>
 	</body>
