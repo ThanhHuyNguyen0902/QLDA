@@ -1,146 +1,141 @@
-﻿<?php
-	if(!isset($_SESSION)) 
-    { 
-        session_start(); 
-    } 
-	
-	include_once "cauhinh.php";
-	
-	include_once "thuvien.php";
+<?php 
+session_start();
+require("../model/database.php");
+require("../model/danhmuc.php");
+require("../model/mathang.php");
+require("../model/giohang.php");
+
+$dm = new DANHMUC();
+$danhmuc = $dm->laydanhmuc();
+$mh = new MATHANG();
+$mathangxemnhieu = $mh->laymathangxemnhieu();
+
+if(isset($_REQUEST["action"])){
+    $action = $_REQUEST["action"];
+}
+else{
+    $action="null"; 
+}
+
+
+switch($action){
+    case "null": 	
+    	$mathang = $mh->laymathang();	
+        include("main.php");
+        break;
+    case "group": 
+        if(isset($_REQUEST["id"])){
+            $madm = $_REQUEST["id"];
+            $dmuc = $dm->laydanhmuctheoid($madm);
+            $tendm =  $dmuc["tendanhmuc"];   
+            $mathang = $mh->laymathangtheodanhmuc($madm);
+            include("group.php");
+        }
+        else{
+            include("main.php");
+        }
+        break;
+    case "detail": 
+        if(isset($_GET["id"])){
+            $mahang = $_GET["id"];
+            // tăng lượt xem lên 1
+            $mh->tangluotxem($mahang);
+            // lấy thông tin chi tiết mặt hàng
+            $mhct = $mh->laymathangtheoid($mahang);
+            // lấy các mặt hàng cùng danh mục
+            $madm = $mhct["danhmuc_id"];
+            $mathang = $mh->laymathangtheodanhmuc($madm);
+            include("detail.php");
+        }
+        break;
+	case "chovaogio":    
+        if(isset($_REQUEST["id"]))
+            $id = $_REQUEST["id"];
+        if(isset($_REQUEST["soluong"]))
+            $soluong = $_REQUEST["soluong"];
+        else
+            $soluong = 1;
+
+        if(isset($_SESSION['giohang'][$id])){ // nếu đã có trong giỏ thi tăng số lượng
+            $soluong += $_SESSION['giohang'][$id];
+            $_SESSION['giohang'][$id] = $soluong;
+        }
+        else{       // nếu chưa thì thêm vào giỏ
+            themhangvaogio($id, $soluong);
+        }
+
+        //themhangvaogio($_REQUEST["id"], $soluong);
+
+        $giohang = laygiohang();   
+        include("cart.php");
+        break;
+    case "giohang":
+        $giohang = laygiohang();
+        include("cart.php");
+    case "capnhatgio":
+        if(isset($_REQUEST["mh"])){
+            $mh = $_REQUEST["mh"];
+            foreach($mh as $id => $soluong) {
+                if($soluong > 0)
+                    capnhatsoluong($id, $soluong);
+                else
+                    xoamotmathang($id);
+            }
+        }
+        $giohang = laygiohang();
+        include("cart.php");
+        break;
+    case "xoagiohang":
+        xoagiohang();
+        $giohang = laygiohang();
+        include("cart.php");
+    case "luudonhang":  
+        $diachi = $_POST["txtdiachi"]; 
+        if(!isset($_SESSION["khachhang"])){ 
+            $email = $_POST["txtemail"]; 
+            $hoten = $_POST["txthoten"]; 
+            $sodienthoai = $_POST["txtsodienthoai"]; 
+             
+            // lưu thông tin khách nếu chưa có trong db (kiểm tra email có tồn tại chưa) 
+            // xử lý thêm... 
+            $kh = new KHACHHANG(); 
+            $khachhang_id = $kh->themkhachhang($email,$sodienthoai,$hoten); 
+             
+             
+        } 
+        else{ 
+            $khachhang_id = $_SESSION["khachhang"]["id"]; 
+             
+            //$dc = new DIACHI(); 
+            //$diachi = $dc->laydiachikhachhang($khachhang_id);             
+            //$diachi_id = $diachi["id"]; 
+        } 
+        // lưu địa chỉ giao hàng // cần xử lý địa chỉ cho 2 trường hợp if... else bên trên 
+            $dc = new DIACHI(); 
+            $diachi_id = $dc->themdiachi($khachhang_id,$diachi); 
+ 
+        // lưu đơn hàng 
+        $dh = new DONHANG(); 
+        $tongtien = tinhtiengiohang(); 
+        $donhang_id = $dh->themdonhang($khachhang_id,$diachi_id,$tongtien); 
+         
+        // lưu chi tiết đơn hàng 
+        $ct = new DONHANGCT();       
+        $giohang = laygiohang(); 
+        foreach($giohang as $id => $mh){ 
+            $dongia = $mh["giaban"]; 
+            $soluong = $mh["soluong"]; 
+            $thanhtien = $mh["thanhtien"]; 
+            $ct->themchitietdonhang($donhang_id,$id,$dongia,$soluong,$thanhtien); 
+            $mh = new MATHANG(); 
+            $mh->capnhatsoluong($id, $soluong); 
+        } 
+        // xóa giỏ hàng 
+        xoagiohang(); 
+        // chuyển đến trang cảm ơn 
+        include("message.php"); 
+        break;
+    default:
+        break;
+}
 ?>
-<!DOCTYPE html>
-<html>
-	<head>
-		<title>Trang Tin Shop Giày</title>
-		<meta charset="utf-8" />
-		<link rel="stylesheet" type="text/css" href="css/style.css" />
-	
-		<script type="text/javascript" src="scripts/jquery-1.4.1.js"></script>
-		<script type="text/javascript" src="scripts/basic.js"></script>
-		
-		<script type="text/javascript" src="scripts/ckeditor/ckeditor.js"></script>
-		<script type="text/javascript" src="scripts/ckfinder/ckfinder.js"></script>
-		
-		
-		
-	</head>
-	<body onload="htGio()">
-		<div id="TrangWeb">
-			<div id="PhanDau">
-				
-			</div>
-			<div id="PhanMenu1">
-				<a class = "menu" href="index.php?do=home">Trang chủ</a>  
-
-				<a class = "menu" href="index.php?do=GioHang"> Giỏ Hàng</a>  
-		
-			</div>
-			<div id="PhanMenu2">
-				
-		
-			</div>
-			
-			<div id="PhanMenu3">
-				<form action="index.php?do=search_xuly" method="post">
-					Tìm kiếm: <input type="text" name="search" />
-					<input type="submit" name="ok" value="search" />
-				</form>
-			</div>
-			<div id="PhanGiua">
-				<div id="BenTrai">
-				<h3>Nhà sản xuất</h3>
-					
-					<?php
-
-						$sql = "select * from `tbl_nhasanxuat` WHERE 1";
-						$danhsach = $connect->query($sql);
-						//Nếu kết quả kết nối không được thì xuất báo lỗi và thoát
-						if (!$danhsach) {
-							die("Không thể thực hiện câu lệnh SQL: " . $connect->connect_error);
-							exit();
-						}
-						
-					?>
-					<div id="menudung">
-					  <ul>						
-						
-							<?php
-							
-								while ($row = $danhsach->fetch_array(MYSQLI_ASSOC)) 
-								{
-    								echo "<li><a href='index.php?do=sanpham_nhasanxuat&id_nsx=" . $row['IdNhaSanXuat'] . "'>" . $row['TenNhaSanXuat'] . "</a></li>";   
-  								}
-							?>  
-						  
-					   </ul>
-						
-					</div>	
-					
-					
-				
-				
-					<h3>Loại Giày</h3>
-					
-					<div id="menudung">
-					  <ul>						
-							<li><a href="index.php?do=Sanpham_PhanLoai&phan_loai=Sneaker">Sneaker</a></li>
-							<li><a href="index.php?do=Sanpham_PhanLoai&phan_loai=Thời trang">Thời trang</a></li>
-							<li><a href="index.php?do=Sanpham_PhanLoai&phan_loai=Bóng đá">Bóng đá</a></li>
-							<li><a href="index.php?do=Sanpham_PhanLoai&phan_loai=Leo núi">Leo núi</a></li>
-							<li><a href="index.php?do=Sanpham_PhanLoai&phan_loai=Cổ cao">Cổ cao</a></li>
-							<li><a href="index.php?do=Sanpham_PhanLoai&phan_loai=Cổ ngắn">Cổ ngắn</a></li>
-							<li><a href="index.php?do=Sanpham_PhanLoai&phan_loai=Trẻ em">Trẻ em</a></li>
-					   </ul>
-						
-					</div>	
-					
-								
-					
-					
-					
-				</div>	
-				
-				<div id="Giua">
-					<table border="0" cellspacing="0" width="750" align="center" valign="top">
-						<tr>
-							<td>
-								<?php include 'jquery.php'; ?>
-							</td>
-						</tr>
-					</table>
-				
-				
-					<?php
-						
-						$do = isset($_GET['do']) ? $_GET['do'] : "home";
-						
-						include $do . ".php";
-					?>
-					
-					
-				</div>
-				
-			<div id="PhanCuoi">
-				<table>
-					<tr>
-						<td>
-							<p>Giới thiệu công ty &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Chính sách bảo mật &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Hệ thống cửa hàng 
-							&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Tin tuyển dụng </p>
-				
-							<p>Quy chế hoạt động &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Hướng dẫn mua online &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Hệ thống bảo hành 
-							&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Hướng dẫn mua trả góp </p>
-				
-							<p>Chính sách đổi trả &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Phản hồi khách hàng Chính sách trả góp &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-							Câu hỏi thường gặp mua hàng</p>
-			
-						</td>
-						<td >
-							&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="images/thanhtoan.jpg" />
-						</td>
-					</tr>
-				</table>
-				
-			</div>
-		</div>
-	</body>
-</html>
