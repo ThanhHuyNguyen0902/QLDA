@@ -1,79 +1,109 @@
 <?php 
+if(!isset($_SESSION["nguoidung"]))
+    header("location:../index.php");
+
 require("../../model/database.php");
-require("../../model/nguoidung.php");
-
-// Biến $isLogin cho biết người dùng đăng nhập chưa
-$isLogin = isset($_SESSION["nguoidung"]);
-
+require("../../model/danhmuc.php");
+require("../../model/mathang.php");
 
 // Xét xem có thao tác nào được chọn
 if(isset($_REQUEST["action"])){
     $action = $_REQUEST["action"];
 }
-elseif($isLogin == FALSE){  // chưa đăng nhập
-    $action="dangnhap";
-}
-else{   // mặc định
-    $action="macdinh";
+else{
+    $action="xem";
 }
 
-$nd = new NGUOIDUNG();
-
+$dm = new DANHMUC();
+$mh = new MATHANG();
 
 switch($action){
-    case "macdinh":               
-        include("main.php");
+    case "xem":
+        $mathang = $mh->laymathang();
+		include("main.php");
         break;
-    case "dangnhap":
-        include("login.php");
+	case "them":
+		$danhmuc = $dm->laydanhmuc();
+		include("addform.php");
         break;
-    case "xldangnhap":
-        $email = $_REQUEST["txtemail"];
-        $matkhau = $_REQUEST["txtmatkhau"];
-        if($nd->kiemtranguoidunghople($email,$matkhau)==TRUE){
-            $_SESSION["nguoidung"] = $nd->laythongtinnguoidung($email); // đặt biến session
-            include("main.php");
+	case "xulythem":	
+		// xử lý file upload
+		$hinhanh = "images/products/" . basename($_FILES["filehinhanh"]["name"]); // đường dẫn ảnh lưu trong db
+		$duongdan = "../../" . $hinhanh; // nơi lưu file upload (đường dẫn tính theo vị trí hiện hành)
+		move_uploaded_file($_FILES["filehinhanh"]["tmp_name"], $duongdan);
+		// xử lý thêm		
+        $mathanghh = new MATHANG();
+		$mathanghh->settenmathang($_POST["txttenmathang"]);
+		$mathanghh->setmota($_POST["txtmota"]);
+		$mathanghh->setgiagoc($_POST["txtgianhap"]);
+		$mathanghh->setgiaban($_POST["txtgiaban"]);
+		$mathanghh->setsoluongton($_POST["txtsoluong"]);
+		$mathanghh->setdanhmuc_id($_POST["optdanhmuc"]);
+        $mathanghh->sethinhanh($hinhanh);
+		$mh->themmathang($mathanghh);
+		$mathang = $mh->laymathang();
+		include("main.php");
+        break;
+	case "xoa":
+		if(isset($_GET["id"])){
+            $mathanghh = new MATHANG();        
+            $mathanghh->setid($_GET["id"]);
+			$mh->xoamathang($mathanghh);
+        }
+		$mathang = $mh->laymathang();
+		include("main.php");
+		break;	
+    case "chitiet":
+        if(isset($_GET["id"])){ 
+            $m = $mh->laymathangtheoid($_GET["id"]);            
+            include("detail.php");
         }
         else{
-            include("login.php");
+            $mathang = $mh->laymathang();        
+            include("main.php");            
         }
         break;
-    case "dangxuat":
-        unset($_SESSION["nguoidung"]);  // hủy biến session
-        //include("login.php");         // hiển thị trang login
-        header("location:../../index.php");     // hoặc chuyển hướng ra bên ngoài (trang dành cho khách)
-        break;  
-    case "hoso":               
-        include("profile.php");
-        break; 
-    case "xlhoso":
-        $mand = $_POST["txtid"];
-        $email = $_POST["txtemail"];        
-        $sodt = $_POST["txtdienthoai"];
-        $hoten = $_POST["txthoten"];
-        $hinhanh = $_POST["txthinhanh"];
+    case "sua":
+        if(isset($_GET["id"])){ 
+            $m = $mh->laymathangtheoid($_GET["id"]);
+            $danhmuc = $dm->laydanhmuc(); 
+            include("updateform.php");
+        }
+        else{
+            $mathang = $mh->laymathang();        
+            include("main.php");            
+        }
+        break;
+    case "xulysua":
+        $mathanghh = new MATHANG();
+        $mathanghh->setid($_POST["txtid"]);
+        $mathanghh->setdanhmuc_id($_POST["optdanhmuc"]);
+        $mathanghh->settenmathang($_POST["txttenhang"]);
+        $mathanghh->setmota($_POST["txtmota"]);
+        $mathanghh->setgiagoc($_POST["txtgiagoc"]);
+        $mathanghh->setgiaban($_POST["txtgiaban"]);
+        $mathanghh->setsoluongton($_POST["txtsoluongton"]);
+        $mathanghh->setluotxem($_POST["txtluotxem"]);
+        $mathanghh->setluotmua($_POST["txtluotmua"]);
+        $mathanghh->sethinhanh($_POST["txthinhcu"]);
 
-        if($_FILES["fhinh"]["name"] != null){
-            $hinhanh = basename($_FILES["fhinh"]["name"]);
-            $duongdan = "../../images/users/" . $hinhanh;
-            move_uploaded_file($_FILES["fhinh"]["tmp_name"], $duongdan);
+        // upload file mới (nếu có)
+        if($_FILES["filehinhanh"]["name"]!=""){
+            // xử lý file upload -- Cần bổ dung kiểm tra: dung lượng, kiểu file, ...       
+            $hinhanh = "images/" . basename($_FILES["filehinhanh"]["name"]);// đường dẫn lưu csdl
+            $mathanghh->sethinhanh($hinhanh);
+            $duongdan = "../../" . $hinhanh; // đường dẫn lưu upload file        
+            move_uploaded_file($_FILES["filehinhanh"]["tmp_name"], $duongdan);
         }
         
-        $nd->capnhatnguoidung($mand,$email,$sodt,$hoten,$hinhanh);
-
-        $_SESSION["nguoidung"] = $nd->laythongtinnguoidung($email);
-        include("main.php");        
+        // sửa mặt hàng
+        $mh->suamathang($mathanghh);         
+    
+        // hiển thị ds mặt hàng
+        $mathang = $mh->laymathang();    
+        include("main.php");
         break;
 
-       
-    case "matkhau":               
-        include("changepass.php");
-        break; 
-    case "doimatkhau":
-         if (isset($_POST["txtemail"]) && isset($_POST["txtmatkhaumoi"]) )
-            $nd->doimatkhau($_POST["txtemail"],$_POST["txtmatkhaumoi"]);
-        include("main.php");
-        break; 
     default:
         break;
 }
